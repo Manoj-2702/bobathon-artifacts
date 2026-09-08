@@ -10,11 +10,22 @@ You are a migration architect at a bank. The trade settlement service currently 
 
 ## Before You Start
 
-- Open [IBM Bob](https://ibmbob.ai) in your browser
-- **Switch to Java Modernisation mode** — click the mode selector at the top and choose `Java Modernisation`
-- Have this README open alongside Bob so you can follow the steps
+### 1. Import Java Modernisation mode (free trial only)
 
-> ⚠️ **Important:** Java Modernisation mode must be active. It has specific knowledge of WebSphere-to-Liberty migration patterns, Liberty feature names, and Jakarta EE API changes.
+The free trial version of Bob does not include this mode by default. A config file is included in the root of this repo.
+
+1. Open **IBM Bob** and click **Settings** in the top navigation
+2. Go to the **Modes** section
+3. Click the **Import** button (next to the **+** icon)
+4. Select or paste the contents of [`java-modernization.yaml`](../java-modernization.yaml) from the repo root
+5. **Save** — **"☕ Java Modernization"** will appear in your mode list
+
+### 2. Activate the mode
+
+- Click the mode selector and choose **☕ Java Modernization**
+- Confirm it is active before pasting any code
+
+> ⚠️ **Do not use Agent mode for this PS.** Java Modernisation mode has specific knowledge of WebSphere-to-Liberty migration patterns, Liberty feature names, and Jakarta EE API changes. Agent mode will give significantly weaker results.
 
 ---
 

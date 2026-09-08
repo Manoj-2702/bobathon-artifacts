@@ -7,6 +7,23 @@ This repository contains five ready-to-use sample codebases — one per problem 
 
 ---
 
+## ⚠️ One-Time Setup — Import Java Modernisation Mode (PS04 & PS05 only)
+
+> **Skip this if you are on PS01, PS02, or PS03.**
+
+The free trial version of IBM Bob does not include Java Modernisation mode by default. A custom mode config file (`java-modernization.yaml`) is included in this repo. Import it once before starting PS04 or PS05.
+
+**Steps:**
+
+1. Open **IBM Bob** and click **Settings** in the top navigation
+2. Go to the **Modes** section
+3. Click the **Import** button (next to the **+** icon)
+4. Select or paste the contents of [`java-modernization.yaml`](java-modernization.yaml) from this repo
+5. **Save** — **"☕ Java Modernization"** will now appear in your mode list
+6. Click the mode selector and choose **☕ Java Modernization** before starting your session
+
+---
+
 ## How to Get Started (2 minutes)
 
 1. **Clone this repo**
@@ -19,7 +36,7 @@ This repository contains five ready-to-use sample codebases — one per problem 
 
 3. **Read the `README.md` inside that folder** — it tells you exactly what to build and how to use Bob to build it
 
-4. **Open [IBM Bob](https://ibmbob.ai)** and select the correct mode (Agent or Java Modernisation — the README will tell you)
+4. **Open [IBM Bob](https://bob.ibm.com)** — select **Agent mode** for PS01–PS03, or **Java Modernisation mode** (see setup above) for PS04–PS05
 
 5. **Build, prompt, iterate** — you have 3 hours
 
