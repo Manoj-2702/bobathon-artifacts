@@ -1,120 +1,209 @@
 # PS03 — Legacy Codebase Onboarding Accelerator
 
-## The Scenario
+## The Problem
 
-You've just joined a bank's engineering team. On day one your manager points you at this module and says:
-*"The original developer left in 2014. There's no documentation. We need you to understand it and be able to make changes safely."*
+Every organisation has that codebase — 10 years old, no documentation, original developers long gone. A new developer joining the team spends their first two weeks just trying to understand what the system does and where to make a change safely. In financial institutions, this onboarding risk is amplified because touching the wrong class can have downstream effects on calculations, reporting, or regulatory outputs.
 
-The module is `com.fincore.engine` — a financial calculation and account management engine. You have the source code and nothing else.
+Static documentation goes stale. What a new developer actually needs is someone they can *ask*.
 
-**Your job:** use Bob to build enough understanding to be productive and safe on day one.
-
----
-
-## Before You Start
-
-- Open [IBM Bob](https://ibmbob.ai) in your browser
-- Make sure you are in **Agent mode**
-- Have this README open alongside Bob so you can follow the steps
+**Your task:** Build an interactive onboarding agent — a conversational CLI where a new developer can ask plain-English questions about an unfamiliar codebase and get accurate, context-aware answers in real time.
 
 ---
 
-## Step 1 — Set the context
+## What You Are Building
 
-Open a new Bob conversation and paste this as your **first message**:
+A conversational CLI agent that:
 
-```
-You are a senior engineer documenting a legacy module for a junior developer joining
-the team today who has no prior context about this codebase. The original developer
-left years ago and there is zero documentation.
+1. **Loads a codebase at startup** — reads all source files from a directory into memory
+2. **Maintains a conversation loop** — the developer types questions, the agent responds
+3. **Answers questions about the code** — what a class does, what a method is for, whether something is safe to change, where to add new functionality
+4. **Remembers the conversation** — earlier questions inform later answers (chat history / context window management)
 
-I will paste the source files one by one. After I paste all of them, produce
-documentation that would make a new developer productive and safe on day one.
-Do not start yet — just acknowledge and wait.
-```
+Think of it as a senior engineer sitting next to the new developer, available to answer any question about the codebase at any time.
 
 ---
 
-## Step 2 — Paste the source files
+## The Codebase to Onboard Into
 
-Copy the content of each file and paste it into Bob one at a time, saying **"next file coming"** between each.
+A deliberately obfuscated legacy Java module is provided in `src/`. It has:
+- Cryptic method names (`proc1`, `calcX`, `doIt`, `run`, `applyAdj`)
+- Magic numbers with no explanation (`0.0025`, `1.15`, `0.30`, `36`, `55`, `99`)
+- Shared mutable static state that causes subtle bugs
+- Methods that mix concerns — a single method does SQL, calculation, and formatting
+- No comments, no Javadoc, no documentation of any kind
 
-**File 1 — Core calculation engine:**
-`src/main/java/com/fincore/engine/LoanCalcEngine.java`
-
-**File 2 — Account manager:**
-`src/main/java/com/fincore/engine/AcctMgr.java`
-
-**File 3 — Report generator:**
-`src/main/java/com/fincore/engine/RptGen.java`
-
-**File 4 — Utility class:**
-`src/main/java/com/fincore/engine/Util.java`
-
-After pasting the last file, say:
 ```
-That's all four files. Now produce the documentation.
+src/main/java/com/fincore/engine/
+├── LoanCalcEngine.java   ← amortization, penalty interest, tier pricing
+├── AcctMgr.java          ← account lifecycle (open, close, freeze, dormant)
+├── RptGen.java           ← report generation (mixes SQL + formatting)
+└── Util.java             ← 18 utility methods, all single-letter variables
 ```
+
+Your agent should be able to answer questions like:
+- *"What does LoanCalcEngine do?"*
+- *"What does proc1() actually calculate?"*
+- *"What is the magic number 0.0025 in calcX()?"*
+- *"Is it safe for me to modify doTierCalc()?"*
+- *"Where should I add a new flat-rate loan type?"*
+- *"Why does AcctMgr.process() take an int instead of an enum?"*
 
 ---
 
-## Step 3 — Ask for a module README
+## How to Use Bob to Build This
 
-Once Bob responds, send:
+### Step 1 — Design the agent architecture with Bob
 
-```
-Generate a README for this module that includes:
-1. What this module does in plain English — what business function does it serve?
-2. A description of each class and its role
-3. How the classes interact with each other — describe the data flow
-4. What the key methods do (without just restating the code)
-5. Any areas you would flag as risky or fragile for a new developer
-```
-
----
-
-## Step 4 — Ask for a risk map
-
-After the README, send:
+Open Bob in **Agent mode** and start here:
 
 ```
-Now produce a risk map. Identify every part of this codebase that is dangerous to
-modify without a deep understanding of the system. For each risky area:
-- Name the class and method
-- Explain exactly what makes it dangerous
-- Describe what could go wrong if a developer changes it without understanding it
+I want to build a conversational CLI agent in Python that helps new developers
+understand an unfamiliar codebase. The agent should:
+
+1. Load all .java files from a directory at startup
+2. Run an interactive question-answer loop in the terminal
+3. Send each question to an LLM along with the codebase content
+4. Print the answer and wait for the next question
+5. Maintain chat history so earlier questions give context to later ones
+
+Help me design the architecture. What are the key components, how should
+I structure the code, and how should I manage the codebase context?
 ```
 
 ---
 
-## Step 5 — Ask for a "first change" guide
-
-Finally, send:
+### Step 2 — Build the codebase loader and context builder
 
 ```
-A developer's first task is to add a new loan type that uses flat-rate interest
-(fixed monthly payment equal to loan amount divided by number of months, no interest
-component). Write a step-by-step guide for where to make this change safely, what to
-watch out for, and what to test before committing.
+Write the Python function that:
+1. Reads all .java files recursively from a given directory
+2. Formats them into a single context string the LLM can understand —
+   each file clearly labelled with its name
+3. Counts the total token size so I know if I'm close to the context limit
+
+Also show me how to truncate or summarise if the codebase is too large
+to fit in a single context window.
 ```
 
 ---
 
-## What to Expect
+### Step 3 — Engineer the system prompt with Bob
 
-The code is intentionally obfuscated — cryptic method names (`proc1`, `calcX`, `doIt`, `run`), magic numbers with no explanation, shared mutable static state, methods that mix concerns. Bob should:
+The system prompt is what makes the agent behave like a knowledgeable senior engineer rather than a generic chatbot. Ask Bob:
 
-- Correctly identify that `LoanCalcEngine` is an amortization/loan calculation engine
-- Identify that `AcctMgr` manages account lifecycle operations (open, close, freeze, dormant)
-- Spot the risky shared static state (`_acc`, `_pacc`, `_cyc`) in `LoanCalcEngine`
-- Flag the magic integer dispatch in `AcctMgr.process(int type)`
-- Notice the SQL injection risk in `RptGen`
+```
+Write a system prompt for an LLM that acts as a senior engineer who knows
+this codebase inside out. The agent is helping a new developer who has
+just joined the team.
+
+The agent should:
+- Answer questions about what classes and methods do in plain English
+- Flag anything that is risky or dangerous to modify, and explain why
+- Suggest safe entry points for making changes
+- Be honest when something is unclear or ambiguous in the code
+- Never make up functionality that isn't in the code
+
+The full codebase will be included in the user context. The agent should
+refer to specific class names, method names, and line numbers when answering.
+```
+
+---
+
+### Step 4 — Build the conversation loop with Bob
+
+```
+Write the main conversation loop for my agent:
+1. Print a welcome message explaining what codebase is loaded
+2. Show a prompt like "> Ask anything about this codebase:"
+3. Read the user's input
+4. Append it to the chat history
+5. Send the full history + codebase context to the LLM
+6. Print the response
+7. Loop back to step 2
+8. Exit cleanly when the user types "exit" or "quit"
+
+Show me how to maintain the chat history as a list of messages
+so the LLM sees the full conversation context on each turn.
+```
+
+---
+
+### Step 5 — Test against the legacy codebase
+
+Run your agent against `src/main/java/com/fincore/engine/` and ask it the questions below. These are the benchmark questions your demo should answer well:
+
+```bash
+python onboarding_agent.py --dir src/main/java/com/fincore/engine/
+```
+
+**Benchmark questions to test:**
+1. `What does this codebase do overall?`
+2. `What does proc1() in LoanCalcEngine do?`
+3. `What is the significance of 0.0025 in calcX()?`
+4. `Is it safe to modify the static fields _acc, _pacc and _cyc?`
+5. `What does AcctMgr.process(2) do versus process(3)?`
+6. `Where would I add a new loan type that uses flat-rate interest?`
+7. `What is the risk of calling getLoanBal() multiple times for the same account?`
+
+If the answers are vague or wrong, go back to Bob and improve the system prompt or context formatting.
+
+---
+
+### Step 6 — Add memory and improve the agent with Bob
+
+Once the basic loop works, ask Bob to make it smarter:
+
+```
+My agent works but it loses track of what we discussed earlier. After a few
+questions it seems to forget the context. Help me:
+
+1. Implement a sliding window — keep only the last N messages in history
+   to avoid exceeding the context limit
+2. Add a "summarise so far" feature: when history gets long, summarise
+   the earlier conversation into a single message and use that as the
+   base context going forward
+```
+
+Also ask Bob to add useful agent commands:
+
+```
+Add these special commands to my agent's conversation loop:
+- /files  — list all the files that were loaded
+- /reset  — clear the chat history and start fresh
+- /risk   — ask the agent to produce a risk map of the entire codebase
+- /readme — ask the agent to generate a README for the codebase
+```
+
+---
+
+## What a Good Agent Looks Like
+
+Test your agent against all 7 benchmark questions. A well-built agent should:
+
+- Correctly identify `LoanCalcEngine` as a loan amortization engine with penalty and early repayment calculation
+- Explain that `proc1()` builds a payment schedule (amortization table) — type 1 = annuity, type 2 = declining balance, type 3 = interest-only
+- Identify `0.0025` as a daily penalty rate (0.25% per day overdue)
+- Flag the static fields `_acc`, `_pacc`, `_cyc` as dangerous shared state — not thread-safe, accumulates across instances
+- Explain that `process(2)` freezes the account (status 3) and `process(3)` marks it dormant (status 4)
+- Suggest `LoanCalcEngine.proc1()` and `doTierCalc()` as the right entry points for a new loan type
+- Warn that `getLoanBal()` applies a silent 5% discount on repeated calls for the same account due to the cache bug
 
 ---
 
 ## Deliverable for the Demo
 
-Walk through your Bob conversation live and show:
-1. The generated README — can a new developer understand this module from it?
-2. The risk map — did Bob identify the genuinely dangerous parts?
-3. The first-change guide — is it specific and actionable?
+Run your agent live in the terminal and show:
+
+1. **The agent starting up** — loading the codebase files, showing a welcome message
+2. **Live Q&A** — ask at least 3 of the 7 benchmark questions and show the answers
+3. **Conversation memory** — ask a follow-up question that references something from earlier in the session
+4. **One improvement iteration** — show how you used Bob to improve the agent (better system prompt, sliding window, special commands, etc.)
+
+---
+
+## Tips
+
+- Start with the simplest possible loop — one question, one answer, no history — and get it working before adding memory
+- Ask Bob to help you print a "thinking..." indicator while waiting for the LLM response so the CLI feels responsive
+- The legacy codebase is intentionally hard — if your agent answers the benchmark questions well, it's genuinely useful
+- If you have time, ask Bob to add a `--diff` mode: the developer pastes a code change and the agent assesses whether it's safe to make given what it knows about the codebase

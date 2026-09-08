@@ -60,13 +60,12 @@ This repository contains five ready-to-use sample codebases — one per problem 
 ---
 
 ### PS03 — Legacy Codebase Onboarding Accelerator
-**Folder:** `ps03-legacy-onboarding/`  
-A deliberately obfuscated legacy Java module — cryptic method names, magic numbers, tangled dependencies, no documentation. There is intentionally almost no README. Paste the source files into Bob and ask it to explain the code, generate documentation, and identify dangerous areas.
+**Folder:** `ps03-legacy-onboarding/`
+**Build** an interactive conversational CLI agent — a new developer types plain-English questions about the codebase and gets accurate answers in real time. The agent loads source files at startup, maintains chat history, and behaves like a senior engineer who knows the codebase. Test it against the deliberately obfuscated legacy loan engine in `src/`.
 
-**Key files to paste into Bob:**
-- `src/main/java/com/fincore/engine/LoanCalcEngine.java`
-- `src/main/java/com/fincore/engine/AcctMgr.java`
-- `src/main/java/com/fincore/engine/RptGen.java`
+**Key files:**
+- `README.md` — what to build, 7 benchmark questions, and how to use Bob
+- `src/main/java/com/fincore/engine/` — the mystery codebase your agent must understand
 
 ---
 
@@ -101,7 +100,7 @@ A WebSphere 8.5 trade settlement application with EJB session beans, WebSphere-p
 |----|------------------------|
 | PS01 | *"I want to build a Python CLI that reads Java files, sends them to an LLM, and outputs a severity-sorted code review report. Help me design the structure and write the LLM call."* |
 | PS02 | *"I want to build a Python CLI that takes a business requirement as input and generates a JUnit 5 test suite skeleton. Help me design the tool and write the system prompt that extracts testable conditions."* |
-| PS03 | *"You are a senior engineer documenting this legacy module for a junior developer joining today with no prior context. Write documentation that would make them productive and safe."* |
+| PS03 | *"I want to build a conversational CLI agent that loads a Java codebase at startup and answers developer questions about it. Help me design the architecture and write the system prompt."* |
 | PS04 | *"Produce a migration assessment for this Java 8 code, then generate the fully refactored Java 21 version with a before/after annotation for each change, as if preparing a team tech talk."* |
 | PS05 | *"Act as a WebSphere-to-Liberty migration architect. Identify every WAS-specific construct that will not work on Open Liberty, produce the Liberty-compatible replacement for each, and generate a prioritised migration checklist."* |
 
