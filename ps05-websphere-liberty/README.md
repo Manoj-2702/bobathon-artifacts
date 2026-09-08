@@ -112,26 +112,13 @@ Produce a complete Open Liberty server.xml for this application that includes:
 
 ---
 
-## What the Code Contains
+## What to Expect
 
-The codebase has these WAS-specific constructs. Bob should identify all of them:
+The codebase contains a mix of WAS-specific Java APIs, proprietary JNDI patterns, WAS-only XML binding files, and admin-console-managed configuration — spread across both the Java source files and the deployment descriptors.
 
-| Blocker | File | Why it's a problem |
-|---------|------|-------------------|
-| `WSSubject.getCallerSubject()` | `TradeSettlementBean.java` | WAS security API — no Liberty equivalent; use `SessionContext.getCallerPrincipal()` |
-| `WSSecurityException` | `TradeSettlementBean.java` | WAS-only exception class |
-| `FFDCFilter.processException()` | `TradeSettlementBean.java` (3 call sites) | WAS FFDC infrastructure — silently no-ops on Liberty |
-| `ctx.lookup("jdbc/TradeDS")` without `java:comp/env` | `TradeSettlementBean.java` | WAS global JNDI extension — not portable |
-| `@EJB(name = "java:comp/env/ejb/TradeRepo")` | `TradeSettlementBean.java` | Binding resolved via `ibm-ejb-jar-bnd.xml` — Liberty uses a different mechanism |
-| `com.ibm.websphere.cache.DistributedMap` | `TradeRepository.java` | WAS Dynamic Cache API — replace with JCache (`javax.cache.Cache`) |
-| `com.ibm.websphere.cache.EntryInfo` | `TradeRepository.java` | No JCache equivalent — TTL set differently |
-| `ctx.lookup("services/cache/TradeCache")` | `TradeRepository.java` | WAS-specific cache JNDI name |
-| `ibm-web-bnd.xml` | `WEB-INF/` | Proprietary — virtual host config moves to `server.xml` |
-| `ibm-ejb-jar-bnd.xml` (ejblocal: scheme) | `WEB-INF/` | `ejblocal:` is WAS-only; Liberty uses `java:global/` names |
-| `ibm-application-bnd.xml` (`ALL_AUTHENTICATED_USERS`) | `WEB-INF/` | WAS-only special subject |
-| WAS admin console datasource XML | `was-config/datasource.xml` | Must be translated to Liberty `server.xml` `<dataSource>` stanza |
+A thorough Bob session in Java Modernisation mode should surface **at least 10 distinct blockers**, each with a clear explanation of why it fails on Liberty and a concrete replacement.
 
-> **Note:** `Trade.java` is standard JPA 2.0 — it requires no changes and will work on Liberty as-is. This is intentional — it shows participants that not everything breaks.
+Not everything in the codebase needs to change — some constructs are standard Java EE and will carry across to Liberty without modification. Part of the exercise is recognising which is which.
 
 ---
 

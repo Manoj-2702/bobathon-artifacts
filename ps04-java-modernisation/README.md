@@ -66,19 +66,8 @@ Once you have the assessment, send:
 
 ```
 Now generate the fully refactored Java 21 version of each file. Apply every
-modernisation you identified:
-- Records (where applicable)
-- Pattern matching instanceof
-- Sealed classes + record variants (for AccountResult)
-- Enhanced switch expressions
-- Virtual Threads (Thread.ofVirtual())
-- Optional instead of null returns
-- java.time API instead of java.util.Date / Calendar
-- Lambdas and streams instead of anonymous inner classes and raw loops
-- try-with-resources
-- StringBuilder instead of StringBuffer
-
-Generate each file in full — not just the changed parts.
+modernisation you identified, using the most idiomatic Java 21 approach for
+each pattern you found. Generate each file in full — not just the changed parts.
 ```
 
 ---
@@ -100,22 +89,11 @@ This is the output you will demo to the room.
 
 ---
 
-## What the Code Contains
+## What to Expect
 
-The Java 8 files contain these migration targets (Bob should find all of them):
+The Java 8 files contain a range of legacy patterns spanning date/time handling, type safety, concurrency, resource management, and class design. A thorough Bob session should identify at least **10 distinct modernisation opportunities** across the five files — with a Java 21 replacement for each.
 
-| Pattern | Where |
-|---------|-------|
-| `java.util.Date` + `Calendar` | `CustomerAccountService`, `Account` |
-| Raw types (`List`, `ArrayList` with no type parameter) | `CustomerAccountService` |
-| Anonymous `Comparator` inner class | `CustomerAccountService.getSortedAccountsByBalance()` |
-| Manual null checks instead of `Optional` | `CustomerAccountService.findAccountByNumber()` |
-| `new Thread(new Runnable() { ... })` | `CustomerAccountService.openAccount()`, all of `NotificationService` |
-| Verbose try-catch-finally for resource cleanup | `CustomerAccountService.loadAccountFromDatabase()` |
-| `StringBuffer` in single-threaded context | `NotificationService`, `CustomerAccountService` |
-| `Hashtable` + `Enumeration` | `CustomerAccountService.logActiveSessions()` |
-| `instanceof` + explicit cast | `CustomerAccountService.processAccountEvent()` |
-| Manual POJO boilerplate (equals/hashCode/toString) | `Account`, `AccountResult` |
+The more patterns Bob finds and correctly maps to Java 21 equivalents, the better your migration assessment.
 
 ---
 

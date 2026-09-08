@@ -34,10 +34,10 @@ A deliberately obfuscated legacy Java module is provided in `src/`. It has:
 
 ```
 src/main/java/com/fincore/engine/
-├── LoanCalcEngine.java   ← amortization, penalty interest, tier pricing
-├── AcctMgr.java          ← account lifecycle (open, close, freeze, dormant)
-├── RptGen.java           ← report generation (mixes SQL + formatting)
-└── Util.java             ← 18 utility methods, all single-letter variables
+├── LoanCalcEngine.java
+├── AcctMgr.java
+├── RptGen.java
+└── Util.java
 ```
 
 Your agent should be able to answer questions like:

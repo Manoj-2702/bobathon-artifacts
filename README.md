@@ -70,27 +70,24 @@ This repository contains five ready-to-use sample codebases — one per problem 
 ---
 
 ### PS04 — Java 8 → Java 21 Migration Planner & Refactorer
-**Folder:** `ps04-java-modernisation/`  
-A Java 8 customer account service that uses every major legacy pattern: `java.util.Date`, raw types, anonymous inner classes, manual null checks, `Thread`/`Runnable`, verbose try-catch-finally, `StringBuffer`, and manual POJO boilerplate. Switch Bob to **Java Modernisation mode** before starting.
+**Folder:** `ps04-java-modernisation/`
+A Java 8 customer account service. Use Bob in **Java Modernisation mode** to analyse the code, produce a migration assessment, refactor each file to idiomatic Java 21, and explain every change as an annotated before/after — ready to present as a team tech talk.
 
-**Key files to modernise:**
-- `src/main/java/com/bank/account/CustomerAccountService.java`
-- `src/main/java/com/bank/account/Account.java`
-- `src/main/java/com/bank/account/AccountResult.java`
-- `src/main/java/com/bank/account/NotificationService.java`
+**Key files:**
+- `README.md` — step-by-step guide for the Bob session
+- `src/main/java/com/bank/account/` — the Java 8 codebase to migrate
 
 ---
 
 ### PS05 — WebSphere to Open Liberty Re-platforming Guide
-**Folder:** `ps05-websphere-liberty/`  
-A WebSphere 8.5 trade settlement application with EJB session beans, WebSphere-proprietary APIs (`WSSubject`, `FFDCFilter`, `DistributedMap`), WAS-specific JNDI bindings, and proprietary XML binding files (`ibm-web-bnd.xml`, `ibm-ejb-jar-bnd.xml`). Switch Bob to **Java Modernisation mode** and ask it to identify every migration blocker.
+**Folder:** `ps05-websphere-liberty/`
+A trade settlement service deployed on WebSphere Application Server 8.5. Use Bob in **Java Modernisation mode** to identify every WAS-specific construct that will break on Liberty, produce Liberty-compatible replacements for each one, and generate a sprint-by-sprint migration backlog.
 
-**Key files to analyse:**
-- `src/main/java/com/bank/settlement/TradeSettlementBean.java`
-- `src/main/java/com/bank/settlement/TradeRepository.java`
-- `src/main/webapp/WEB-INF/ibm-web-bnd.xml`
-- `src/main/webapp/WEB-INF/ibm-ejb-jar-bnd.xml`
-- `src/main/resources/was-config/datasource.xml`
+**Key files:**
+- `README.md` — step-by-step guide for the Bob session
+- `src/main/java/com/bank/settlement/` — EJB service code with WAS-specific APIs
+- `src/main/webapp/WEB-INF/` — proprietary WAS binding files
+- `src/main/resources/was-config/` — WAS admin console datasource config
 
 ---
 
