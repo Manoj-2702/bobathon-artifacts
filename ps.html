@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bob Hackathon — Problem Statements</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 48px 24px 64px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 40px; border-bottom: 2px solid #e5e7eb; padding-bottom: 24px; }
+  .header-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 10px; }
+  .meta-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #57606a;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 3px 10px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1f2328;
+    margin-bottom: 6px;
+  }
+  .header p {
+    font-size: 13.5px;
+    color: #57606a;
+    max-width: 640px;
+  }
+
+  /* Area label */
+  .area-label {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+  .area-sdlc { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .area-java { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+  /* PS Card */
+  .ps-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 28px 28px 24px;
+    margin-bottom: 28px;
+    background: #ffffff;
+  }
+
+  .ps-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .ps-number {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f7f8fa;
+    border: 1.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #57606a;
+    margin-top: 2px;
+  }
+  .ps-title-block h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1f2328;
+    margin-bottom: 2px;
+  }
+  .ps-title-block .subtitle {
+    font-size: 12.5px;
+    color: #57606a;
+    font-style: italic;
+  }
+
+  .section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #57606a;
+    margin-bottom: 5px;
+    margin-top: 16px;
+  }
+  .context-box {
+    background: #f7f8fa;
+    border-left: 3px solid #e5e7eb;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    color: #1f2328;
+    margin-bottom: 4px;
+  }
+
+  .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .task-list li {
+    display: flex;
+    gap: 10px;
+    font-size: 13.5px;
+    color: #1f2328;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f1f3;
+  }
+  .task-list li:last-child { border-bottom: none; }
+  .task-step {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #3b82d4;
+    background: #eff6ff;
+    border-radius: 3px;
+    padding: 1px 7px;
+    margin-top: 2px;
+    height: fit-content;
+  }
+
+  .deliverable-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #14532d;
+    margin-top: 4px;
+  }
+  .deliverable-box strong { color: #166534; }
+
+  .bob-hint {
+    margin-top: 14px;
+    padding: 9px 14px;
+    background: #fafafa;
+    border: 1px dashed #d0d7de;
+    border-radius: 5px;
+    font-size: 12.5px;
+    color: #57606a;
+  }
+  .bob-hint strong { color: #1f2328; }
+
+  /* Summary table */
+  .summary { margin-top: 44px; border-top: 1px solid #e5e7eb; padding-top: 28px; }
+  .summary h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: #1f2328; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #57606a;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 6px 10px;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f1f3;
+    vertical-align: top;
+    color: #1f2328;
+  }
+  tr:last-child td { border-bottom: none; }
+  .tag-sdlc { color: #1d4ed8; font-weight: 600; }
+  .tag-java { color: #7e22ce; font-weight: 600; }
+
+  /* Footer */
+  .footer {
+    margin-top: 52px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ─── HEADER ─── -->
+<div class="header">
+  <div class="header-meta">
+    <span class="meta-pill">IBM Bob Hackathon</span>
+    <span class="meta-pill">11:00 AM – 2:00 PM · 3 Hours</span>
+    <span class="meta-pill">Financial &amp; Enterprise Clients</span>
+    <span class="meta-pill">SDLC · Java Modernisation</span>
+  </div>
+  <h1>Problem Statements</h1>
+  <p>Five hands-on challenges for technical developers to solve using IBM Bob. Each problem is scoped to fit within the 3-hour window. A sample codebase is provided for every problem statement — clone the repo, open your assigned folder, and follow the README. Deliverables are for demo and showcase — there is no formal judging.</p>
+</div>
+
+<!-- ─── PS 01 ─── -->
+<div class="ps-card">
+  <span class="area-label area-sdlc">SDLC</span>
+  <div class="ps-header">
+    <div class="ps-number">01</div>
+    <div class="ps-title-block">
+      <h2>Intelligent Pull Request Reviewer</h2>
+      <div class="subtitle">Build a tool that automates code review and enforces quality gates before code reaches main</div>
+    </div>
+  </div>
+
+  <div class="section-label">The Problem</div>
+  <div class="context-box">
+    Your team merges dozens of pull requests daily. Code reviews are inconsistent — senior developers catch different things, junior developers miss security gaps, and no one has time to review everything thoroughly. Bugs and vulnerabilities slip into production because review quality depends entirely on who is available that day.
+  </div>
+
+  <div class="section-label">Your Task</div>
+  <ul class="task-list">
+    <li><span class="task-step">Step 1</span> Use Bob to design and build a CLI tool (Python, Node.js, or any language) that reads Java source files, sends them to an LLM with a structured review prompt, and outputs a severity-sorted finding report (Critical / High / Medium / Low).</li>
+    <li><span class="task-step">Step 2</span> Use Bob to engineer the review system prompt — specify the output format (JSON array of findings with file, line, explanation, and fix), and instruct the model to look for injection vulnerabilities, hardcoded secrets, logic bugs, missing auth, and non-atomic operations.</li>
+    <li><span class="task-step">Step 3</span> Run your tool against the sample payment transfer service provided in the repo. Iterate the prompt with Bob until the findings are specific, actionable, and correctly severity-ranked.</li>
+    <li><span class="task-step">Step 4</span> Feed the most critical finding back to Bob and ask it to regenerate the corrected version of that file — show the full fixed file with an explanation of every change.</li>
+  </ul>
+
+  <div class="section-label">Deliverable</div>
+  <div class="deliverable-box">
+    <strong>Demo-ready output:</strong> A working CLI tool that produces a structured finding report when run against the sample codebase — at least 3 findings at different severity levels, one prompt iteration showing improvement, and a corrected file generated by Bob for the most critical issue.
+  </div>
+
+  <div class="bob-hint">
+    <strong>Bob tip:</strong> Use <strong>Agent mode</strong>. Start with: "I want to build a Python CLI that reads Java files, sends them to an LLM, and outputs a severity-sorted code review report. Help me design the structure and write the LLM call." Then iterate the prompt until the tool catches everything.
+  </div>
+</div>
+
+<!-- ─── PS 02 ─── -->
+<div class="ps-card">
+  <span class="area-label area-sdlc">SDLC</span>
+  <div class="ps-header">
+    <div class="ps-number">02</div>
+    <div class="ps-title-block">
+      <h2>Requirement-to-Test Coverage Generator</h2>
+      <div class="subtitle">Build a tool that turns a business requirement directly into a test suite skeleton</div>
+    </div>
+  </div>
+
+  <div class="section-label">The Problem</div>
+  <div class="context-box">
+    Business analysts write requirements. Developers build features. QA engineers write test cases — from scratch, manually, often late. The result is patchy test coverage, missed edge cases, and production defects that were entirely predictable from the original requirement. In regulated industries like banking and insurance, missing a boundary condition isn't just a bug — it can be a compliance failure.
+  </div>
+
+  <div class="section-label">Your Task</div>
+  <ul class="task-list">
+    <li><span class="task-step">Step 1</span> Use Bob to design and build a CLI tool that accepts a plain-English business requirement as input, sends it to an LLM, and outputs a JUnit 5 test suite skeleton — with descriptive method names, inline comments, and TODO bodies ready for implementation.</li>
+    <li><span class="task-step">Step 2</span> Use Bob to engineer the extraction prompt — instruct the model to group testable conditions into four categories: happy path, negative cases, boundary values, and compliance / edge cases. Output must be valid Java with a minimum of 8 test methods.</li>
+    <li><span class="task-step">Step 3</span> Run your tool against the four banking requirements provided in the repo (transfer limits, interest calculation, international fees, fraud flagging). Iterate the prompt with Bob until boundary values and compliance cases are covered.</li>
+    <li><span class="task-step">Step 4</span> Extend the tool with a second LLM call that identifies ambiguities in the requirement — things that are untestable as written — and suggests how to rewrite them to be precise.</li>
+  </ul>
+
+  <div class="section-label">Deliverable</div>
+  <div class="deliverable-box">
+    <strong>Demo-ready output:</strong> A working CLI tool that takes a banking requirement as input and produces a JUnit 5 test skeleton — at least 8 test methods covering 3+ categories, one prompt iteration showing improved boundary coverage, and an ambiguity report for one of the requirements.
+  </div>
+
+  <div class="bob-hint">
+    <strong>Bob tip:</strong> Use <strong>Agent mode</strong>. Start with: "I want to build a Python CLI that takes a business requirement as input and generates a JUnit 5 test suite skeleton. Help me design the tool and write the system prompt that extracts testable conditions." Then test it against real banking requirements and refine.
+  </div>
+</div>
+
+<!-- ─── PS 03 ─── -->
+<div class="ps-card">
+  <span class="area-label area-sdlc">SDLC</span>
+  <div class="ps-header">
+    <div class="ps-number">03</div>
+    <div class="ps-title-block">
+      <h2>Legacy Codebase Onboarding Accelerator</h2>
+      <div class="subtitle">Build an interactive agent that gets a new developer productive on an unfamiliar codebase in minutes</div>
+    </div>
+  </div>
+
+  <div class="section-label">The Problem</div>
+  <div class="context-box">
+    Every organisation has that codebase — 10 years old, no documentation, original developers long gone. A new developer joining the team spends their first two weeks just trying to understand what the system does and where to make a change safely. In financial institutions, this onboarding risk is amplified because touching the wrong class can have downstream effects on calculations, reporting, or regulatory outputs. Static documentation goes stale. What a new developer actually needs is someone they can ask.
+  </div>
+
+  <div class="section-label">Your Task</div>
+  <ul class="task-list">
+    <li><span class="task-step">Step 1</span> Use Bob to design and build a conversational CLI agent that loads all source files from a directory at startup and runs an interactive question-answer loop — the developer types plain-English questions, the agent responds with accurate, code-grounded answers.</li>
+    <li><span class="task-step">Step 2</span> Use Bob to engineer the system prompt — the agent should behave like a senior engineer who knows the codebase, flag risky areas, suggest safe entry points, and never fabricate functionality that isn't in the code.</li>
+    <li><span class="task-step">Step 3</span> Test your agent against the deliberately obfuscated legacy loan engine provided in the repo — cryptic method names, magic numbers, shared mutable static state, no comments. Ask it the benchmark questions in the README and iterate until answers are accurate and specific.</li>
+    <li><span class="task-step">Step 4</span> Use Bob to add conversation memory — a sliding window or summary mechanism so the agent remembers earlier questions. Add special commands: <code>/risk</code> (produce a risk map) and <code>/readme</code> (generate module documentation).</li>
+  </ul>
+
+  <div class="section-label">Deliverable</div>
+  <div class="deliverable-box">
+    <strong>Demo-ready output:</strong> A working conversational CLI agent that loads the legacy codebase and answers developer questions live — demonstrate at least 3 benchmark questions answered correctly, a follow-up that uses conversation memory, and one improvement iteration made with Bob.
+  </div>
+
+  <div class="bob-hint">
+    <strong>Bob tip:</strong> Use <strong>Agent mode</strong>. Start with: "I want to build a conversational CLI agent that loads a Java codebase at startup and answers developer questions about it. Help me design the architecture and write the system prompt." The harder the codebase, the more impressive the demo.
+  </div>
+</div>
+
+<!-- ─── PS 04 ─── -->
+<div class="ps-card">
+  <span class="area-label area-java">Java Modernisation</span>
+  <div class="ps-header">
+    <div class="ps-number">04</div>
+    <div class="ps-title-block">
+      <h2>Java 8 → Java 21 Migration Planner &amp; Refactorer</h2>
+      <div class="subtitle">Upgrade a real Java 8 service to idiomatic Java 21 with a clear, phased plan</div>
+    </div>
+  </div>
+
+  <div class="section-label">The Problem</div>
+  <div class="context-box">
+    Java 8 reached end-of-life for free public updates years ago, yet the majority of enterprise Java applications in banking, insurance, and capital markets still run on it. Upgrading is not just about changing a version number — Java 9 through 21 introduced module system changes, removed APIs, deprecated patterns, and added powerful new language features. Without a structured approach, teams either stall or break production upgrading blindly.
+  </div>
+
+  <div class="section-label">Your Task</div>
+  <ul class="task-list">
+    <li><span class="task-step">Step 1</span> A Java 8 customer account service is provided in the repo. It uses legacy patterns across date/time handling, type safety, concurrency, resource management, and class design. Open it in Bob (Java Modernisation mode) and ask for a full migration assessment.</li>
+    <li><span class="task-step">Step 2</span> Use Bob (Java Modernisation mode) to analyse the code and produce a migration assessment: every legacy pattern that should be modernised, the Java 21 feature that replaces it, and why the modern approach is better.</li>
+    <li><span class="task-step">Step 3</span> Ask Bob to generate the fully refactored Java 21 version of each file — applying idiomatic modern Java throughout. Generate each file in full, not just the changed parts.</li>
+    <li><span class="task-step">Step 4</span> Ask Bob to produce an annotated before/after comparison for the 5 most impactful changes — Java 8 snippet, Java 21 snippet, and a plain-English explanation of why it's better, as if presenting at a team tech talk.</li>
+  </ul>
+
+  <div class="section-label">Deliverable</div>
+  <div class="deliverable-box">
+    <strong>Demo-ready output:</strong> A migration assessment report, a fully refactored Java 21 version of at least one file, and an annotated before/after comparison for at least 2 changes — all generated through Bob in Java Modernisation mode, presented as a team knowledge-share.
+  </div>
+
+  <div class="bob-hint">
+    <strong>Bob tip:</strong> Switch Bob to <strong>Java Modernisation mode</strong> before pasting your code. Ask it to "produce a before/after comparison with a plain-English annotation for each change, as if preparing a team tech talk."
+  </div>
+</div>
+
+<!-- ─── PS 05 ─── -->
+<div class="ps-card">
+  <span class="area-label area-java">Java Modernisation</span>
+  <div class="ps-header">
+    <div class="ps-number">05</div>
+    <div class="ps-title-block">
+      <h2>WebSphere to Open Liberty Re-platforming Guide</h2>
+      <div class="subtitle">Produce a concrete, code-level migration plan for moving a real application off WebSphere</div>
+    </div>
+  </div>
+
+  <div class="section-label">The Problem</div>
+  <div class="context-box">
+    Traditional WebSphere Application Server (WAS) is expensive to license, slow to deploy, and incompatible with modern cloud-native delivery practices. Financial institutions that still run WAS face mounting pressure to re-platform — but the migration is non-trivial. WebSphere-specific APIs, proprietary deployment descriptors, EJB patterns, custom classloader configurations, and transaction manager bindings all create migration blockers that teams don't discover until they try to deploy on Liberty and things break.
+  </div>
+
+  <div class="section-label">Your Task</div>
+  <ul class="task-list">
+    <li><span class="task-step">Step 1</span> A WebSphere 8.5 trade settlement service is provided in the repo — an EJB session bean, proprietary WAS binding files (<code>ibm-ejb-jar-bnd.xml</code>, <code>ibm-web-bnd.xml</code>), WAS-specific Java APIs, and an admin-console datasource config. Open it in Bob (Java Modernisation mode).</li>
+    <li><span class="task-step">Step 2</span> Use Bob (Java Modernisation mode) to identify every WAS-specific construct in the code and configuration that will not work on Open Liberty out of the box — with a clear explanation of why each one is a blocker.</li>
+    <li><span class="task-step">Step 3</span> Ask Bob to produce the Liberty-compatible replacement for each blocker — including updated Java code, the correct <code>server.xml</code> feature configuration, and any Jakarta EE 10 API changes required.</li>
+    <li><span class="task-step">Step 4</span> Ask Bob to produce a migration checklist ordered by effort (low to high) that a team could use as a sprint-by-sprint re-platforming backlog.</li>
+  </ul>
+
+  <div class="section-label">Deliverable</div>
+  <div class="deliverable-box">
+    <strong>Demo-ready output:</strong> A blocker inventory with code-level fixes, a corrected <code>server.xml</code> snippet, and a prioritised migration checklist — all produced through Bob in Java Modernisation mode, demonstrating a real path from WAS to Liberty the team could act on immediately.
+  </div>
+
+  <div class="bob-hint">
+    <strong>Bob tip:</strong> Use <strong>Java Modernisation mode</strong>. Ask Bob to "act as a WebSphere-to-Liberty migration architect and produce a technical migration guide I can share with my development team and present to my architect."
+  </div>
+</div>
+
+<!-- ─── SUMMARY TABLE ─── -->
+<div class="summary">
+  <h3>At a Glance — All 5 Problem Statements</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Area</th>
+        <th>Title</th>
+        <th>What You Build / Produce</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>PS 01</strong></td>
+        <td><span class="tag-sdlc">SDLC</span></td>
+        <td>Intelligent Pull Request Reviewer</td>
+        <td>CLI tool — reads code, calls LLM, outputs severity-sorted finding report</td>
+      </tr>
+      <tr>
+        <td><strong>PS 02</strong></td>
+        <td><span class="tag-sdlc">SDLC</span></td>
+        <td>Requirement-to-Test Coverage Generator</td>
+        <td>CLI tool — reads requirements, calls LLM, outputs JUnit 5 test skeleton</td>
+      </tr>
+      <tr>
+        <td><strong>PS 03</strong></td>
+        <td><span class="tag-sdlc">SDLC</span></td>
+        <td>Legacy Codebase Onboarding Accelerator</td>
+        <td>Conversational CLI agent — loads codebase, answers developer questions live</td>
+      </tr>
+      <tr>
+        <td><strong>PS 04</strong></td>
+        <td><span class="tag-java">Java Mod</span></td>
+        <td>Java 8 → Java 21 Migration Planner &amp; Refactorer</td>
+        <td>Bob session — migration assessment, refactored code, annotated tech talk</td>
+      </tr>
+      <tr>
+        <td><strong>PS 05</strong></td>
+        <td><span class="tag-java">Java Mod</span></td>
+        <td>WebSphere to Open Liberty Re-platforming Guide</td>
+        <td>Bob session — blocker inventory, Liberty config, sprint-by-sprint backlog</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>
