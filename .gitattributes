@@ -1,0 +1,2 @@
+bob_ide/*.pkg filter=lfs diff=lfs merge=lfs -text
+bob_ide/*.exe filter=lfs diff=lfs merge=lfs -text

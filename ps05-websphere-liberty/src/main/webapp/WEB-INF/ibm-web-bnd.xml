@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ibm-web-bnd.xml — WebSphere-specific web module binding file.
+
+  This file controls how the web module is bound to WAS infrastructure:
+    - Which virtual host serves the web application
+    - Resource reference bindings (JNDI names for env-entries and resource-refs
+      declared in web.xml that are resolved to actual WAS-managed resources)
+
+  This file is a WAS proprietary extension.  It has no direct equivalent in
+  the Java EE / Jakarta EE standard.  On Open Liberty the virtual-host element
+  is configured in server.xml (<virtualHost>) and resource references are
+  resolved via server.xml <dataSource> / <jndiEntry> stanzas or
+  @Resource annotations with the Liberty-specific lookup attribute.
+
+  Schema:  http://websphere.ibm.com/xml/ns/javaee/ibm-web-bnd_1_0.xsd
+  WAS 8.5 feature: webContainer-3.0
+-->
+<web-bnd xmlns="http://websphere.ibm.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://websphere.ibm.com/xml/ns/javaee
+                             http://websphere.ibm.com/xml/ns/javaee/ibm-web-bnd_1_0.xsd"
+         version="1.0">
+
+  <!--
+    Bind this web module to the "default_host" virtual host defined in the
+    WAS admin console.  The virtual host maps TCP port 9080 (HTTP) and
+    9443 (HTTPS) to this application context root (/trade-settlement).
+  -->
+  <virtual-host name="default_host"/>
+
+  <!--
+    Resource reference binding: maps the logical name "jdbc/TradeDS" declared
+    in web.xml <resource-ref> to the actual WAS-managed JDBC datasource
+    "jdbc/TradeDatasource" configured under Resources → JDBC → Data sources
+    in the WAS admin console.
+  -->
+  <resource-ref name="jdbc/TradeDS"
+                binding-name="jdbc/TradeDatasource"/>
+
+  <!--
+    EJB reference binding: maps the local EJB reference declared in web.xml
+    to the actual EJB home registered in the WAS global JNDI namespace.
+    The ejblocal: scheme is a WAS extension for local EJB lookups.
+  -->
+  <ejb-ref name="ejb/TradeSettlement"
+           binding-name="ejblocal:com.bank.settlement.TradeSettlementBean"/>
+
+</web-bnd>

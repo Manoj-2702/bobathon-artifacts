@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  pom.xml — Trade Settlement Service
+  Target runtime: WebSphere Application Server 8.5.5.x
+
+  All IBM WAS 8.5 proprietary API dependencies are provided by the WAS runtime
+  and are NOT available in public Maven repositories.  They are declared here
+  with "provided" scope so the compiler can resolve them; the actual JARs must
+  be installed into your local Maven repository from the WAS installation:
+
+    mvn install:install-file \
+      -Dfile=${WAS_HOME}/plugins/com.ibm.ws.runtime.jar \
+      -DgroupId=com.ibm.websphere \
+      -DartifactId=was-server-api \
+      -Dversion=8.5.5.22 \
+      -Dpackaging=jar
+
+  Alternatively, use the IBM WebSphere Liberty Tools Maven plugin to supply
+  the API JARs via the wlp-dev profile (not shown here — this pom targets WAS,
+  not Liberty).
+
+  ============================================================================
+  MIGRATION NOTE
+  When re-platforming to Open Liberty, the following changes are needed here:
+    1. Replace was-server-api with the relevant liberty-apis artifact from:
+         io.openliberty.features:*-api:*
+    2. Replace the websphere-cache artifact with javax.cache:cache-api (JCache)
+    3. Add the liberty-maven-plugin for dev mode and packaging
+    4. Optionally switch to the jakarta.* namespace (EE 9+) if targeting Liberty 22+
+  ============================================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.bank</groupId>
+  <artifactId>trade-settlement</artifactId>
+  <version>3.4.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <name>Trade Settlement Service</name>
+  <description>
+    Intra-day and end-of-day trade settlement EJB service.
+    Deployed as TradeSettlement.ear on WAS 8.5.5 ND cluster.
+  </description>
+
+  <properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- WAS 8.5.5.22 runtime version — update when cluster is patched -->
+    <was.version>8.5.5.22</was.version>
+  </properties>
+
+  <dependencies>
+
+    <!-- ===================================================================
+         Java EE 7 APIs — provided by the WAS 8.5 runtime container.
+         WAS 8.5 implements Java EE 6 fully and ships partial Java EE 7 support
+         via feature packs.  The javax.ejb and javax.persistence APIs below
+         are satisfied by the WAS runtime classpath at deploy time.
+    ==================================================================== -->
+
+    <!-- EJB 3.1 API (Java EE 6) — WAS 8.5 ships ejbLite-3.1 feature -->
+    <dependency>
+      <groupId>javax.ejb</groupId>
+      <artifactId>javax.ejb-api</artifactId>
+      <version>3.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JPA 2.0 API — WAS 8.5 ships with OpenJPA 2.2 as the default provider -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Servlet 3.0 API — required for the thin WAR packaging -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- javax.annotation — @Resource, @PostConstruct etc. -->
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.2</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- ===================================================================
+         WAS 8.5 PROPRIETARY APIs
+         These JARs are NOT in Maven Central.  They must be installed from
+         ${WAS_HOME}/plugins/ or ${WAS_HOME}/runtimes/ as described at the
+         top of this file.
+
+         groupId convention used internally: com.ibm.websphere
+         These coordinates are UNOFFICIAL — IBM does not publish WAS runtime
+         JARs to Maven Central or the IBM Artifact Repository.
+    ==================================================================== -->
+
+    <!--
+      WAS server runtime API JAR — provides:
+        com.ibm.websphere.security.auth.WSSubject
+        com.ibm.websphere.security.WSSecurityException
+        com.ibm.ws.ffdc.FFDCFilter
+        com.ibm.websphere.naming.JndiHelper
+        com.ibm.websphere.management.*
+      Source: ${WAS_HOME}/plugins/com.ibm.ws.runtime.jar
+              ${WAS_HOME}/plugins/com.ibm.ws.admin.client_8.5.0.jar
+    -->
+    <dependency>
+      <groupId>com.ibm.websphere</groupId>
+      <artifactId>was-server-api</artifactId>
+      <version>${was.version}</version>
+      <scope>provided</scope>
+      <!-- Install locally: mvn install:install-file -Dfile=${WAS_HOME}/plugins/com.ibm.ws.runtime.jar ... -->
+    </dependency>
+
+    <!--
+      WAS Dynamic Cache API — provides:
+        com.ibm.websphere.cache.DistributedMap
+        com.ibm.websphere.cache.EntryInfo
+        com.ibm.websphere.cache.CacheEntry
+      Source: ${WAS_HOME}/plugins/com.ibm.ws.dynamic.cache.jar
+
+      MIGRATION NOTE: Replace with javax.cache:cache-api (JCache 1.1) on Liberty.
+      The Liberty distributedMap-1.0 feature wraps JCache and provides a
+      com.ibm.websphere.cache.DistributedMap adapter, but full API parity
+      is not guaranteed — EntryInfo in particular has no JCache equivalent.
+    -->
+    <dependency>
+      <groupId>com.ibm.websphere</groupId>
+      <artifactId>websphere-cache</artifactId>
+      <version>${was.version}</version>
+      <scope>provided</scope>
+      <!-- Install locally: mvn install:install-file -Dfile=${WAS_HOME}/plugins/com.ibm.ws.dynamic.cache.jar ... -->
+    </dependency>
+
+    <!-- ===================================================================
+         Test dependencies
+    ==================================================================== -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>4.11.0</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <finalName>TradeSettlement</finalName>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.2</version>
+        <configuration>
+          <failIfNoWebXml>false</failIfNoWebXml>
+          <!--
+            WAS 8.5 deployment uses a traditional EAR package.
+            The WAR is embedded inside TradeSettlement.ear produced by the
+            parent EAR project (not included in this sample).
+          -->
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

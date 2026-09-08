@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  datasource.xml — WebSphere admin console datasource configuration snippet.
+
+  This is NOT a Liberty server.xml fragment.  This file captures the
+  equivalent of what is configured through the WAS admin console GUI at:
+
+    Resources → JDBC → JDBC Providers → DB2 Universal JDBC Driver Provider
+    Resources → JDBC → Data sources → TradeDatasource (jdbc/TradeDatasource)
+
+  The format below mirrors the WAS wsadmin (Jython/Jacl) scripting model
+  and the admin console export format, used here as documentation of the
+  production WAS configuration that must be reproduced on Open Liberty.
+
+  TO MIGRATE TO LIBERTY:
+    Replace this entire file with a <dataSource> stanza in server.xml.
+    Key mappings:
+      datasource[@jndiName]           → <dataSource jndiName="...">
+      connectionPool[@maxConnections] → <connectionManager maxPoolSize="...">
+      properties.db2.jcc[@*]          → <properties.db2.jcc .../>
+      authDataAlias                   → <authData> in server.xml + <jaasLoginModule>
+-->
+
+<was-config>
+
+  <!--
+    JDBC Provider: DB2 Universal JDBC Driver Provider (XA-capable)
+
+    Installed driver JARs are expected on the WAS shared library path:
+      ${WAS_INSTALL_ROOT}/jdbcdrivers/DB2/db2jcc4.jar
+      ${WAS_INSTALL_ROOT}/jdbcdrivers/DB2/db2jcc_license_cu.jar
+
+    The nativeLibraryPath is required for DB2 type-2 connectivity on AIX.
+    For Liberty, only the JAR paths are needed — native libs are not required
+    for type-4 (pure Java) connectivity.
+  -->
+  <jdbcProvider
+      name="DB2 Universal JDBC Driver Provider (XA)"
+      implementationClassName="com.ibm.db2.jcc.DB2XADataSource"
+      classpath="${WAS_INSTALL_ROOT}/jdbcdrivers/DB2/db2jcc4.jar
+                 ${WAS_INSTALL_ROOT}/jdbcdrivers/DB2/db2jcc_license_cu.jar"
+      nativeLibraryPath="${WAS_INSTALL_ROOT}/jdbcdrivers/DB2/lib"
+      description="DB2 XA-capable JDBC provider for trade settlement DB">
+  </jdbcProvider>
+
+  <!--
+    Data Source: TradeDatasource
+
+    Bound in the global JNDI namespace as "jdbc/TradeDatasource".
+    The alias "WAS_TRADE_DB_AUTH" references a J2C Authentication Data entry
+    (username + password) configured in the WAS admin console under:
+      Security → Global security → Java Authentication and Authorization Service
+      → J2C authentication data
+  -->
+  <dataSource
+      name="TradeDatasource"
+      jndiName="jdbc/TradeDatasource"
+      authDataAlias="WAS_TRADE_DB_AUTH"
+      xaRecoveryAuthAlias="WAS_TRADE_DB_AUTH"
+      statementCacheSize="25"
+      description="Trade settlement DB2 datasource (T+0 settlement schema)">
+
+    <!-- DB2 JCC connection properties -->
+    <properties.db2.jcc
+        serverName="db2-trade.bank.internal"
+        portNumber="50000"
+        databaseName="TRADEDB"
+        currentSchema="BANKDB"
+        driverType="4"
+        sslConnection="true"
+        sslTrustStoreLocation="${WAS_INSTALL_ROOT}/etc/trust.jks"
+        sslTrustStorePassword="{xor}EXAMPLE_ENCODED_VALUE"
+        currentLockTimeout="30"
+        progressiveStreaming="2"
+        resultSetHoldability="1"/>
+
+    <!--
+      Connection pool tuning — sized for the WAS cluster node agent.
+      Each node runs up to 8 settlement threads; pool headroom adds 4.
+    -->
+    <connectionPool
+        minConnections="2"
+        maxConnections="12"
+        connectionTimeout="180"
+        idleTimeout="1800"
+        reapTime="180"
+        unusedTimeout="1800"
+        agedTimeout="0"
+        purgePolicy="EntirePool"
+        numberOfSharedPoolPartitions="0"
+        numberOfFreePoolPartitions="0"
+        freePoolDistributionTableSize="0"
+        surgeThreshold="-1"
+        surgeCreationInterval="0"
+        testConnection="false"
+        testConnectionInterval="0"
+        stuckTimerTime="0"
+        stuckTime="0"
+        stuckThreshold="0"/>
+
+  </dataSource>
+
+</was-config>

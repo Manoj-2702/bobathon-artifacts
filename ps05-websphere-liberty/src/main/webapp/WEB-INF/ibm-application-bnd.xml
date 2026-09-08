@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ibm-application-bnd.xml — WebSphere-specific application binding file.
+
+  Maps Java EE security roles (declared in application.xml or via annotations)
+  to actual users, groups, or special subjects in the WAS security domain.
+
+  This file is a WAS proprietary extension.  The Java EE standard (application.xml)
+  declares roles but provides no portable way to map them to identity providers.
+
+  On Open Liberty:
+    - Simple role-to-user/group mappings can be expressed in server.xml using
+      the <application> / <application-bnd> stanza.
+    - For LDAP-backed mappings, Liberty uses security.xml or an external LDAP
+      registry configured in server.xml — not this file.
+    - The <special-subject> ALL_AUTHENTICATED_USERS and EVERYONE constructs
+      used below are WAS-specific and must be re-expressed in Liberty config.
+
+  Schema:  http://websphere.ibm.com/xml/ns/javaee/ibm-application-bnd_1_2.xsd
+  WAS 8.5 feature: appSecurity-2.0
+-->
+<application-bnd xmlns="http://websphere.ibm.com/xml/ns/javaee"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://websphere.ibm.com/xml/ns/javaee
+                                     http://websphere.ibm.com/xml/ns/javaee/ibm-application-bnd_1_2.xsd"
+                 version="1.2">
+
+  <!--
+    SettlementOps role — granted to the settlement-team LDAP group.
+
+    Group "cn=settlement-team,ou=groups,dc=bank,dc=com" is defined in the
+    WAS federated repository (LDAP realm: bank.com).
+    Members of this group may invoke TradeSettlementBean.settleTrade() and
+    TradeSettlementBean.runEndOfDaySettlement().
+  -->
+  <security-role name="SettlementOps">
+    <group name="settlement-team"
+           access-id="group:bank.com/cn=settlement-team,ou=groups,dc=bank,dc=com"/>
+  </security-role>
+
+  <!--
+    TradeViewer role — granted to all authenticated users.
+
+    The ALL_AUTHENTICATED_USERS special subject is a WAS shorthand that maps
+    the role to any principal successfully authenticated by any configured
+    user registry.  There is no single equivalent in Liberty; the closest
+    portable approach is to configure <securityRole> with individual
+    user or group entries, or to use MicroProfile JWT @RolesAllowed.
+  -->
+  <security-role name="TradeViewer">
+    <special-subject type="ALL_AUTHENTICATED_USERS"/>
+  </security-role>
+
+  <!--
+    SettlementSystem role — used for internal service-to-service calls.
+
+    The run-as identity "svc-settlement" (mapped in ibm-ejb-jar-bnd.xml)
+    is granted this role so it can invoke restricted operations on behalf
+    of the settlement engine without end-user credentials.
+  -->
+  <security-role name="SettlementSystem">
+    <user name="svc-settlement"
+          access-id="user:bank.com/svc-settlement"/>
+  </security-role>
+
+</application-bnd>

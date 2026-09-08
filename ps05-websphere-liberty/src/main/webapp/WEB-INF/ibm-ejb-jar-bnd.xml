@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ibm-ejb-jar-bnd.xml — WebSphere-specific EJB module binding file.
+
+  Provides WAS-specific binding information for EJBs declared in ejb-jar.xml:
+    - JNDI names under which EJB homes are registered in the global namespace
+    - Datasource and resource reference bindings for EJB resource-refs
+    - Security role run-as bindings
+    - Transaction isolation overrides (WAS extension)
+
+  This file has no equivalent in the Java EE / Jakarta EE specification.
+  On Open Liberty, EJBs are automatically registered with a predictable
+  JNDI name pattern (java:global/<app>/<module>/<bean>) and datasource
+  bindings are declared in server.xml.
+
+  Schema:  http://websphere.ibm.com/xml/ns/javaee/ibm-ejb-jar-bnd_1_1.xsd
+  WAS 8.5 feature: ejbLite-3.1
+-->
+<ejb-jar-bnd xmlns="http://websphere.ibm.com/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://websphere.ibm.com/xml/ns/javaee
+                                 http://websphere.ibm.com/xml/ns/javaee/ibm-ejb-jar-bnd_1_1.xsd"
+             version="1.1">
+
+  <!--
+    Bind TradeSettlementBean to a WAS-specific JNDI name.
+
+    The ejblocal: scheme registers a local EJB reference accessible only
+    within the same JVM.  Remote callers use the corbaname: or iiop: scheme
+    (not used here — this is a local-only service).
+
+    WAS also registers the bean under the portable
+    java:global/TradeSettlement/TradeSettlementBean name, but internal code
+    uses the legacy ejblocal: form for backward compatibility.
+  -->
+  <session name="TradeSettlementBean">
+    <interface class="com.bank.settlement.TradeSettlementBean"
+               binding-name="ejblocal:com.bank.settlement.TradeSettlementBean"/>
+
+    <!--
+      Resource reference binding: maps the logical JNDI name declared with
+      @EJB(name="java:comp/env/ejb/TradeRepo") to the actual registered EJB.
+    -->
+    <ejb-ref name="ejb/TradeRepo"
+             binding-name="ejblocal:com.bank.settlement.TradeRepository"/>
+
+    <!--
+      Datasource resource reference binding.
+      Maps the logical name "jdbc/TradeDS" used in InitialContext.lookup()
+      to the WAS-managed datasource "jdbc/TradeDatasource".
+    -->
+    <resource-ref name="jdbc/TradeDS"
+                  binding-name="jdbc/TradeDatasource"/>
+
+    <!--
+      Run-as security role binding.
+      When the bean invokes outbound EJB calls it runs as the
+      "SettlementSystem" identity mapped to the WAS system account.
+      This is a WAS security extension with no portable Java EE equivalent
+      at the binding-file level; Liberty handles run-as via server.xml
+      <application> security configuration.
+    -->
+    <run-as-map run-as-role="SettlementSystem"
+                user-name="svc-settlement"/>
+  </session>
+
+  <session name="TradeRepository">
+    <interface class="com.bank.settlement.TradeRepository"
+               binding-name="ejblocal:com.bank.settlement.TradeRepository"/>
+
+    <resource-ref name="jdbc/TradeDS"
+                  binding-name="jdbc/TradeDatasource"/>
+  </session>
+
+</ejb-jar-bnd>
