@@ -1,22 +1,10 @@
 package com.bank.account;
 
 /**
- * Manual result wrapper that carries either a success value or a failure message.
+ * Wraps the result of an account operation.
  *
- * Java 8 style: a single class with a boolean flag and two nullable fields.
- * Callers must remember to check {@code isSuccess()} before calling {@code getValue()},
- * and the compiler gives no help if they forget.
- *
- * Modernisation targets (Java 17+):
- *  - Replace with a sealed interface + two record variants:
- *
- *    sealed interface AccountResult<T> permits AccountResult.Success, AccountResult.Failure {
- *        record Success<T>(T value) implements AccountResult<T> {}
- *        record Failure<T>(String errorCode, String message) implements AccountResult<T> {}
- *    }
- *
- *  - Call sites can then use pattern matching switch to handle both cases exhaustively,
- *    eliminating null-pointer risk entirely.
+ * Carries either a successful value or a failure with an error code and message.
+ * Callers must check {@code isSuccess()} before calling {@code getValue()}.
  */
 public class AccountResult<T> {
 
@@ -52,9 +40,8 @@ public class AccountResult<T> {
     }
 
     /**
-     * Returns the wrapped value.
-     * WARNING: returns null when {@code isSuccess()} is false — callers must guard.
-     * A sealed record variant would eliminate this ambiguity at the type level.
+     * Returns the wrapped value, or null if this is a failure result.
+     * Callers must check {@code isSuccess()} first.
      */
     public T getValue() {
         return value;
@@ -68,9 +55,9 @@ public class AccountResult<T> {
         return message;
     }
 
-    // -----------------------------------------------------------------------
-    // Manually implemented equals / hashCode / toString
-    // -----------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // equals / hashCode / toString
+    // -------------------------------------------------------------------------
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

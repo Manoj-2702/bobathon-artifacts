@@ -19,14 +19,14 @@ import java.util.logging.Logger;
 /**
  * EJB repository for Trade entities.
  *
- * Combines standard JPA 2.0 persistence (which works on Liberty as-is)
- * with WebSphere's DistributedMap API for cluster-aware caching of
- * in-flight trade state. The cache is used to avoid repeated DB round-trips
- * for the hot path: checking whether a PENDING trade already exists for
- * a given ISIN + counterparty combination within the current settlement window.
+ * Combines JPA 2.0 persistence with WebSphere's DistributedMap API for
+ * cluster-aware caching of in-flight trade state. The cache reduces DB
+ * round-trips for the hot path: checking whether a PENDING trade already
+ * exists for a given ISIN + counterparty combination within the current
+ * settlement window.
  *
- * Cache configuration is managed via the WAS admin console
- * (Dynamic Cache service → cache instance "services/cache/TradeCache").
+ * Cache instances are managed via the WAS admin console under
+ * Resources → Cache instances → "services/cache/TradeCache".
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -49,16 +49,10 @@ public class TradeRepository {
     private EntityManager em;
 
     /**
-     * WebSphere DistributedMap instance.
+     * WebSphere DistributedMap instance for cluster-aware caching.
      *
-     * This is looked up programmatically rather than injected because
-     * WAS 8.5 does not expose DistributedMap as a standard resource ref.
-     * The cache instance "services/cache/TradeCache" must be pre-configured
-     * in the WAS admin console under Resources → Cache instances.
-     *
-     * NOTE: com.ibm.websphere.cache.DistributedMap is a WAS-proprietary API.
-     * The equivalent in Liberty with the distributedMap-1.0 feature is
-     * javax.cache.Cache (JCache), but the programming model differs.
+     * Looked up programmatically on first use because WAS 8.5 does not
+     * expose DistributedMap as a standard injectable resource reference.
      */
     private DistributedMap tradeCache;
 
@@ -144,8 +138,7 @@ public class TradeRepository {
             .filter(t -> isin.equals(t.getIsin()))
             .collect(java.util.stream.Collectors.toList());
 
-        // Populate the cache using WAS EntryInfo for fine-grained TTL + priority control.
-        // EntryInfo is a WAS-specific class — there is no standard Java EE equivalent.
+        // Populate the cache with TTL and priority metadata.
         if (cache != null) {
             try {
                 EntryInfo entryInfo = new EntryInfo();

@@ -1,12 +1,7 @@
 package com.bank.account;
 
 /**
- * Account type enumeration.
- *
- * Java 8 style: plain enum with a switch statement that uses string concatenation
- * and lacks exhaustiveness guarantees. A modern Java 21 refactor would introduce
- * sealed classes or at minimum an enhanced switch expression with pattern matching
- * to make the type hierarchy exhaustive and expressive.
+ * Enumerates the types of bank account supported by the system.
  */
 public enum AccountType {
 
@@ -17,8 +12,7 @@ public enum AccountType {
     LOAN;
 
     /**
-     * Returns the minimum balance required for the given account type.
-     * Old-style switch statement — no exhaustiveness check, falls through to default.
+     * Returns the minimum opening and maintenance balance for the account type.
      */
     public double getMinimumBalance() {
         switch (this) {
@@ -38,8 +32,7 @@ public enum AccountType {
     }
 
     /**
-     * Returns a human-readable description.
-     * Uses old-style switch with String concatenation instead of a switch expression.
+     * Returns a human-readable description of the account type.
      */
     public String getDescription() {
         String description;

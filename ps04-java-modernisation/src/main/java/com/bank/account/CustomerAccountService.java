@@ -18,25 +18,10 @@ import java.util.logging.Logger;
 /**
  * Core service for managing customer bank accounts.
  *
- * This class is written in idiomatic Java 8 and intentionally uses a wide range
- * of patterns that have better replacements in modern Java.  Participants are
- * asked to identify each legacy pattern and refactor it using Java 21 features.
- *
- * ============================================================
- * LEGACY PATTERNS PRESENT — modernisation targets
- * ============================================================
- *
- *  1. java.util.Date / Calendar  → java.time.LocalDate / Period / DateTimeFormatter
- *  2. Raw types (List, ArrayList) → Generics / var
- *  3. Anonymous Comparator inner class → lambda / Comparator.comparing(...)
- *  4. Manual null checks          → Optional<T>
- *  5. new Thread(new Runnable(){}) → Virtual Threads (Thread.ofVirtual())
- *  6. Verbose try-catch-finally   → try-with-resources
- *  7. StringBuffer                → StringBuilder
- *  8. Enumeration (Hashtable)     → Map.forEach / entrySet stream
- *  9. instanceof + explicit cast  → Pattern matching instanceof (Java 16+)
- * 10. AccountResult wrapper class → Sealed interface + record variants
- * ============================================================
+ * Responsible for account lifecycle operations: opening accounts,
+ * calculating maturity dates, sorting and querying accounts,
+ * loading account data from persistence, and dispatching
+ * asynchronous customer notifications.
  */
 public class CustomerAccountService {
 
@@ -44,22 +29,19 @@ public class CustomerAccountService {
 
     private final NotificationService notificationService;
 
-    // Legacy Hashtable (synchronised, old API) — holds active sessions keyed by customer ID
-    private final Hashtable customerSessions = new Hashtable();  // raw type intentional
+    // Holds active session tokens keyed by customer ID
+    private final Hashtable customerSessions = new Hashtable();
 
     public CustomerAccountService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    // -----------------------------------------------------------------------
-    // 1. java.util.Date + java.util.Calendar for date logic
-    // -----------------------------------------------------------------------
-
     /**
      * Calculates the maturity date for a Fixed Deposit account.
      *
-     * Uses {@code java.util.Calendar} — verbose and error-prone.
-     * Modernise with {@code java.time.LocalDate.plusMonths(termMonths)}.
+     * @param openingDate the date the account was opened
+     * @param termMonths  the fixed deposit term in months
+     * @return the date on which the fixed deposit matures
      */
     public Date calculateMaturityDate(Date openingDate, int termMonths) {
         if (openingDate == null) {
@@ -68,7 +50,6 @@ public class CustomerAccountService {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(openingDate);
         calendar.add(Calendar.MONTH, termMonths);
-        // Zero out time components to get a pure date — Calendar makes this tedious
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
@@ -79,8 +60,8 @@ public class CustomerAccountService {
     /**
      * Returns the number of days since the account was opened.
      *
-     * Manual millisecond arithmetic — {@code java.time.temporal.ChronoUnit.DAYS.between()}
-     * is cleaner and avoids the DST edge cases present here.
+     * @param openedDate the date the account was opened
+     * @return days elapsed, or 0 if the date is null
      */
     public long getDaysSinceOpening(Date openedDate) {
         if (openedDate == null) {
@@ -90,19 +71,14 @@ public class CustomerAccountService {
         return diffMillis / (1000L * 60 * 60 * 24);
     }
 
-    // -----------------------------------------------------------------------
-    // 2. Raw types
-    // -----------------------------------------------------------------------
-
     /**
-     * Returns all accounts for a given customer.
+     * Returns all accounts held by the given customer.
      *
-     * Raw {@code List} and {@code ArrayList} — no type parameter.
-     * Modernise with {@code List<Account>} and let the compiler enforce type safety.
+     * @param customerId the customer identifier
+     * @return list of accounts
      */
-    public List getAccountsForCustomer(String customerId) {  // raw List — intentional
-        List accounts = new ArrayList();                      // raw ArrayList — intentional
-        // Simulated data load; in production this would query a repository
+    public List getAccountsForCustomer(String customerId) {
+        List accounts = new ArrayList();
         accounts.add(new Account("ACC001", customerId, AccountType.SAVINGS,
                 15000.00, new Date(), null, true, "BR001"));
         accounts.add(new Account("ACC002", customerId, AccountType.FIXED_DEPOSIT,
@@ -110,23 +86,18 @@ public class CustomerAccountService {
         return accounts;
     }
 
-    // -----------------------------------------------------------------------
-    // 3. Anonymous Comparator inner class instead of lambda
-    // -----------------------------------------------------------------------
-
     /**
-     * Sorts a list of accounts by balance in descending order.
+     * Returns all accounts for the given customer, sorted by balance descending.
      *
-     * Uses an anonymous {@code Comparator} inner class.
-     * Modernise with: {@code accounts.sort(Comparator.comparingDouble(Account::getBalance).reversed())}
+     * @param customerId the customer identifier
+     * @return accounts sorted highest balance first
      */
     public List getSortedAccountsByBalance(String customerId) {
-        List accounts = getAccountsForCustomer(customerId);  // raw type flows through
+        List accounts = getAccountsForCustomer(customerId);
 
         Collections.sort(accounts, new Comparator<Account>() {
             @Override
             public int compare(Account a1, Account a2) {
-                // Descending order
                 if (a2.getBalance() > a1.getBalance()) return 1;
                 if (a2.getBalance() < a1.getBalance()) return -1;
                 return 0;
@@ -136,15 +107,13 @@ public class CustomerAccountService {
         return accounts;
     }
 
-    // -----------------------------------------------------------------------
-    // 4. Manual null checks instead of Optional
-    // -----------------------------------------------------------------------
-
     /**
-     * Finds a single account by account number.
+     * Finds a single account by account number for a given customer.
+     * Returns null if the account is not found.
      *
-     * Returns {@code null} when not found — callers must null-check.
-     * Modernise with {@code Optional<Account>} as the return type.
+     * @param accountNumber the account number to search for
+     * @param customerId    the owning customer's identifier
+     * @return the matching account, or null
      */
     public Account findAccountByNumber(String accountNumber, String customerId) {
         if (accountNumber == null) {
@@ -155,18 +124,19 @@ public class CustomerAccountService {
         }
         List accounts = getAccountsForCustomer(customerId);
         for (int i = 0; i < accounts.size(); i++) {
-            Account account = (Account) accounts.get(i);  // cast needed because raw List
+            Account account = (Account) accounts.get(i);
             if (accountNumber.equals(account.getAccountNumber())) {
                 return account;
             }
         }
-        return null;  // explicit null — callers must guard
+        return null;
     }
 
     /**
-     * Gets the branch code for an account, with a manual null-check fallback.
+     * Returns the branch code for an account, or "UNKNOWN" if unavailable.
      *
-     * Modernise with: {@code Optional.ofNullable(account).map(Account::getBranchCode).orElse("UNKNOWN")}
+     * @param account the account to query
+     * @return branch code string, never null
      */
     public String getBranchCodeSafely(Account account) {
         if (account == null) {
@@ -182,22 +152,19 @@ public class CustomerAccountService {
         return branchCode;
     }
 
-    // -----------------------------------------------------------------------
-    // 5. new Thread(new Runnable() { ... }) for async work
-    // -----------------------------------------------------------------------
-
     /**
-     * Opens a new account and asynchronously notifies the customer.
+     * Opens a new account for a customer and dispatches a welcome notification.
      *
-     * Notification dispatch uses a raw platform thread.
-     * Modernise with {@code Thread.ofVirtual().start(() -> notificationService.sendWelcomeNotification(...))}
-     * or a virtual-thread executor.
+     * @param customerId     the customer identifier
+     * @param email          the customer's email address for notifications
+     * @param type           the type of account to open
+     * @param initialDeposit the opening deposit amount
+     * @return a result containing the new account, or a failure with an error code
      */
     public AccountResult<Account> openAccount(String customerId,
                                                String email,
                                                AccountType type,
                                                double initialDeposit) {
-        // Manual pre-condition checks — could use Objects.requireNonNull
         if (customerId == null || customerId.trim().isEmpty()) {
             return AccountResult.failure("INVALID_CUSTOMER", "Customer ID must not be blank");
         }
@@ -220,7 +187,6 @@ public class CustomerAccountService {
         Account account = new Account(accountNumber, customerId, type,
                 initialDeposit, openedDate, maturityDate, true, "BR001");
 
-        // Async notification via anonymous Runnable + raw platform thread
         final String finalEmail = email;
         final String finalCustomerId = customerId;
         new Thread(new Runnable() {
@@ -233,15 +199,12 @@ public class CustomerAccountService {
         return AccountResult.success(account);
     }
 
-    // -----------------------------------------------------------------------
-    // 6. Verbose try-catch-finally instead of try-with-resources
-    // -----------------------------------------------------------------------
-
     /**
-     * Loads account details from a database connection.
+     * Loads account details from the database for the given account number.
      *
-     * Manual resource cleanup in a finally block.
-     * Modernise with try-with-resources: {@code try (PreparedStatement ps = conn.prepareStatement(...)) { ... }}
+     * @param connection    an active database connection
+     * @param accountNumber the account number to load
+     * @return a result containing the account, or a failure with an error code
      */
     public AccountResult<Account> loadAccountFromDatabase(Connection connection,
                                                            String accountNumber) {
@@ -265,7 +228,6 @@ public class CustomerAccountService {
             LOGGER.log(Level.SEVERE, "Database error loading account: " + accountNumber, e);
             return AccountResult.failure("DB_ERROR", "Database error: " + e.getMessage());
         } finally {
-            // Verbose manual close — error-prone if close() itself throws
             if (resultSet != null) {
                 try {
                     resultSet.close();
@@ -283,18 +245,14 @@ public class CustomerAccountService {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // 7. StringBuffer instead of StringBuilder (single-threaded context)
-    // -----------------------------------------------------------------------
-
     /**
-     * Builds a formatted account summary string.
+     * Builds a formatted summary string for a list of accounts.
      *
-     * Uses {@code StringBuffer} — which is synchronised — even though
-     * this method is single-threaded.  Replace with {@code StringBuilder}.
+     * @param accounts the accounts to summarise
+     * @return formatted multi-line summary
      */
     public String buildAccountSummary(List accounts) {
-        StringBuffer buffer = new StringBuffer();  // synchronised — unnecessary here
+        StringBuffer buffer = new StringBuffer();
         buffer.append("=== Account Summary ===\n");
         for (int i = 0; i < accounts.size(); i++) {
             Account account = (Account) accounts.get(i);
@@ -308,22 +266,14 @@ public class CustomerAccountService {
         return buffer.toString();
     }
 
-    // -----------------------------------------------------------------------
-    // 8. Enumeration from legacy Hashtable API
-    // -----------------------------------------------------------------------
-
     /**
-     * Logs all active customer sessions.
-     *
-     * Iterates with {@code Hashtable.keys()} which returns an {@code Enumeration}.
-     * Modernise by replacing {@code Hashtable} with {@code ConcurrentHashMap}
-     * and using {@code forEach} or an enhanced for-loop over {@code entrySet()}.
+     * Logs all customer IDs that currently have active sessions.
      */
     public void logActiveSessions() {
-        Enumeration keys = customerSessions.keys();   // raw Enumeration — intentional
+        Enumeration keys = customerSessions.keys();
         StringBuffer logLine = new StringBuffer("Active sessions: ");
         while (keys.hasMoreElements()) {
-            String customerId = (String) keys.nextElement();  // cast needed
+            String customerId = (String) keys.nextElement();
             logLine.append(customerId).append(" ");
         }
         LOGGER.info(logLine.toString());
@@ -331,36 +281,36 @@ public class CustomerAccountService {
 
     /**
      * Registers a session token for a customer.
+     *
+     * @param customerId   the customer identifier
+     * @param sessionToken the session token to store
      */
     public void registerSession(String customerId, String sessionToken) {
         customerSessions.put(customerId, sessionToken);
     }
 
-    // -----------------------------------------------------------------------
-    // 9. instanceof + explicit cast (no pattern matching)
-    // -----------------------------------------------------------------------
-
     /**
-     * Processes a generic account event object.
+     * Processes an account event object, dispatching to the appropriate handler.
      *
-     * Uses the old {@code instanceof} + explicit cast idiom.
-     * Java 16+ pattern matching: {@code if (event instanceof DepositEvent de) { ... }}
+     * Supported event types: DepositEvent, WithdrawalEvent, AccountClosureEvent.
+     *
+     * @param event the event to process
      */
     public void processAccountEvent(Object event) {
         if (event instanceof DepositEvent) {
-            DepositEvent depositEvent = (DepositEvent) event;  // redundant cast in Java 16+
+            DepositEvent depositEvent = (DepositEvent) event;
             LOGGER.info("Processing deposit: " + depositEvent.amount
                     + " for account " + depositEvent.accountNumber);
             handleDeposit(depositEvent.accountNumber, depositEvent.amount);
 
         } else if (event instanceof WithdrawalEvent) {
-            WithdrawalEvent withdrawalEvent = (WithdrawalEvent) event;  // redundant cast
+            WithdrawalEvent withdrawalEvent = (WithdrawalEvent) event;
             LOGGER.info("Processing withdrawal: " + withdrawalEvent.amount
                     + " for account " + withdrawalEvent.accountNumber);
             handleWithdrawal(withdrawalEvent.accountNumber, withdrawalEvent.amount);
 
         } else if (event instanceof AccountClosureEvent) {
-            AccountClosureEvent closureEvent = (AccountClosureEvent) event;  // redundant cast
+            AccountClosureEvent closureEvent = (AccountClosureEvent) event;
             LOGGER.info("Processing closure for account: " + closureEvent.accountNumber);
             handleClosure(closureEvent.accountNumber, closureEvent.reason);
 
@@ -369,9 +319,9 @@ public class CustomerAccountService {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Static inner event classes (candidates for records)
-    // -----------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Inner event classes
+    // -------------------------------------------------------------------------
 
     public static class DepositEvent {
         public final String accountNumber;
@@ -403,9 +353,9 @@ public class CustomerAccountService {
         }
     }
 
-    // -----------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Private helpers
-    // -----------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     private String generateAccountNumber(String customerId, AccountType type) {
         StringBuffer sb = new StringBuffer();

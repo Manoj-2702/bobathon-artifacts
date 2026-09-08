@@ -4,31 +4,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Sends notifications to customers about account events.
+ * Sends email notifications to customers about account lifecycle events.
  *
- * Java 8 style: every async operation spawns a raw platform thread via
- * {@code new Thread(new Runnable() { ... })}.  For a high-throughput
- * notification service this is wasteful — each thread consumes ~1 MB of stack.
- *
- * Modernisation targets (Java 21):
- *  - Replace {@code new Thread(runnable)} with
- *    {@code Thread.ofVirtual().start(runnable)} or
- *    {@code Executors.newVirtualThreadPerTaskExecutor()}
- *  - Replace anonymous {@code Runnable} inner classes with lambdas
- *  - Replace {@code StringBuffer} with {@code StringBuilder}
- *  - Use structured concurrency (JEP 453) for coordinated async operations
+ * Each notification is dispatched asynchronously so the calling thread
+ * is not blocked waiting for the email to be delivered.
  */
 public class NotificationService {
 
     private static final Logger LOGGER = Logger.getLogger(NotificationService.class.getName());
 
     /**
-     * Sends a welcome email to a new customer.
-     * Uses an anonymous Runnable and a raw platform Thread.
+     * Sends a welcome email to a newly registered customer.
+     *
+     * @param customerId the customer identifier
+     * @param email      the customer's email address
      */
     public void sendWelcomeNotification(final String customerId, final String email) {
-        // Anonymous inner class — should become a lambda in Java 8+,
-        // and the Thread itself should become a virtual thread in Java 21.
         Thread notificationThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -52,8 +43,11 @@ public class NotificationService {
     }
 
     /**
-     * Sends an account-closed notification.
-     * Another raw Thread + anonymous Runnable combination.
+     * Sends a notification confirming that an account has been closed.
+     *
+     * @param customerId    the customer identifier
+     * @param email         the customer's email address
+     * @param accountNumber the account that was closed
      */
     public void sendAccountClosedNotification(final String customerId,
                                                final String email,
@@ -82,8 +76,11 @@ public class NotificationService {
     }
 
     /**
-     * Sends a low-balance alert.
-     * Yet another anonymous Runnable — repetitive boilerplate across all methods.
+     * Sends an alert notifying the customer that their balance is below the minimum threshold.
+     *
+     * @param customerId     the customer identifier
+     * @param email          the customer's email address
+     * @param currentBalance the current account balance
      */
     public void sendLowBalanceAlert(final String customerId,
                                      final String email,
@@ -93,7 +90,6 @@ public class NotificationService {
             public void run() {
                 try {
                     Thread.sleep(50);
-                    // StringBuffer used here — should be StringBuilder (not thread-safe context)
                     StringBuffer sb = new StringBuffer();
                     sb.append("Dear Customer ").append(customerId).append(",\n\n");
                     sb.append("Your account balance has fallen below the minimum threshold.\n");
@@ -123,7 +119,6 @@ public class NotificationService {
     // -----------------------------------------------------------------------
 
     private String buildWelcomeMessage(String customerId, String email) {
-        // StringBuffer instead of StringBuilder — no concurrent access here
         StringBuffer sb = new StringBuffer();
         sb.append("Dear Customer,\n\n");
         sb.append("Welcome to the Bank! Your customer ID is: ").append(customerId).append(".\n");
